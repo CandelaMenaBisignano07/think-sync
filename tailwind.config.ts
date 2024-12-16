@@ -15,6 +15,9 @@ export default {
       },
       zIndex:{
         '2': "2"
+      },
+      gridTemplateColumns:{
+        'home': '250px 1fr'
       }
     },
   },

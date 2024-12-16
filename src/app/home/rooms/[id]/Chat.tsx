@@ -1,14 +1,12 @@
 "use client"
-import { useMutation, useMyPresence,useStorage } from '@liveblocks/react'
+import { useMutation,useStorage } from '@liveblocks/react'
 import React, { useState } from 'react'
 import { LiveObject } from '@liveblocks/client'
 import { v4 } from 'uuid'
-interface ChatProps extends React.HTMLAttributes<HTMLDivElement>{}
-
-export default function Chat({...props}:ChatProps) {
+import Modal from './components/Modal'
+export default function Chat({...props}:React.HTMLAttributes<HTMLDivElement>) {
     const [message, setMessage] = useState('');
     const messages = useStorage((root)=> {return [...root.chatMessages.entries()]});
-    const [presence, setPresence] = useMyPresence();
 
     const addMessage = useMutation(({storage, self})=>{
         if(!message) return;
@@ -27,11 +25,7 @@ export default function Chat({...props}:ChatProps) {
         else addMessage();
     };
   return (
-        <div {...props}>
-            <div className='bg-[#333] p-[10px] flex justify-around items-center'>
-                <p className='text-white font-bold text-lg'>chat</p>
-                <button className='btn' onClick={(e)=>setPresence({chat:{...presence.chat,isFullyOpened:!presence.chat.isFullyOpened}})}>resize</button>
-            </div>
+    <Modal type='chat' {...props}>
             <div className='flex flex-col p-[30px] w-full max-h-[70%] overflow-y-scroll gap-2'>
                 {
                     messages && messages.length > 0 ? messages.map(([key, value])=> (
@@ -43,6 +37,6 @@ export default function Chat({...props}:ChatProps) {
                 <input value={message} className='w-full pl-2 border-[1px] border-solid border-black'  type='text' onChange={(e)=> setMessage(e.target.value)} onKeyDown={(e)=> verifyIfMessageEntered(e)}/>
                 <button className='btn' onClick={()=>addMessage()}>send</button>
             </div>
-        </div>
+    </Modal>
   )
 }

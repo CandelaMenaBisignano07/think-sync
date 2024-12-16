@@ -1,13 +1,9 @@
-"use client"
-
-import { LiveblocksProvider} from "@liveblocks/react";
-import MyRoom from "./MyRoom";
-import { configs } from "./lib/config";
-
-export default function Home() {
-  return (
-    <LiveblocksProvider throttle={16} publicApiKey={configs.publicApiKey as string}>
-      <MyRoom/>
-    </LiveblocksProvider>
-  );
+import { getServerSession } from "next-auth"
+import { redirect } from "next/navigation";
+async function page() {
+    const user = await getServerSession();
+    if(!user) return redirect('/api/auth/signin')
+    else return redirect('/home')
 }
+
+export default page

@@ -1,10 +1,14 @@
 import { LiveObject} from '@liveblocks/client';
-import { useHistory, useMutation, useMyPresence, useOthers, useStorage} from '@liveblocks/react';
+import { useHistory, useMutation, useMyPresence, useOthers, useSelf, useStorage} from '@liveblocks/react';
 import React, { useEffect, useRef, useState } from 'react';
 import { v4 } from 'uuid';
 import html2canvas from 'html2canvas';
-import { DownloadUrl } from '../../liveblocks.config';
-import Chat from './components/Chat';
+import { DownloadUrl } from '../../../../types/liveblocks.config';
+import Chat from './Chat'
+import Link from 'next/link';
+import Social from './Social';
+import { redirect } from 'next/navigation';
+import UserComponent from './components/UserComponent';
 const prettyColors = [
     "#FFB6C1",// Light Pink
     "#FFDEAD",// Navajo White
@@ -27,16 +31,21 @@ const prettyColors = [
     "#00CED1",// Dark Turquoise
     "#4682B4",// Steel Blue
   ];
+
 function Canvas() {
     const [isDragging, setIsDragging] = useState(false); //cuando se empiece a mover o este en modo selected se actvia
     const[download, setDownload] = useState<DownloadUrl|null>(null);
     const canvasRef = useRef<HTMLDivElement|null>(null);
     const {redo, undo, canRedo, canUndo, resume, pause} = useHistory();
+    const shapes = useStorage((root)=>{return [...root.shapes.entries()]});
+    const [ presence, setPresence] = useMyPresence();
+    const self = useSelf()
+    const others = useOthers();
     const handleDownloadBoard = async()=>{
         try {
             if(!canvasRef.current) return
             const canvas = await html2canvas(canvasRef.current,{
-                ignoreElements:((chatRef)=> chatRef.id === 'chat')
+                ignoreElements:((chatRef)=> ['chat', 'social'].includes(chatRef.id))
             })
             const url = {href:canvas.toDataURL(), download: `${v4()}.png`};
             setDownload(url)
@@ -48,14 +57,6 @@ function Canvas() {
     useEffect(()=>{
         handleDownloadBoard()
     }, [])
-    const shapes = useStorage((root)=>{return [...root.shapes.entries()]});
-    const [ presence, setPresence] = useMyPresence()
-    const others = useOthers();
-    const otherHasShapeSelected = (id:string)=>{
-        const other = others.find((o)=> o.presence.selectedShape === id);
-        if(!other) return
-        return other.presence.myColor
-    };
     //creacion del rectangulo
     //borrar el rectangulo
     //cuando apretamos el rectangulo
@@ -73,18 +74,18 @@ function Canvas() {
 
     const selectRectangle = useMutation(({setMyPresence},e:React.MouseEvent<HTMLDivElement, MouseEvent>)=>{
         const id = e.currentTarget.id;
+        console.log('hola', id)
         setMyPresence({selectedShape:id}, {addToHistory:true}); 
         setIsDragging(true);
-        if(id !== 'chat') handleDownloadBoard()
+        if(!['social', 'chat'].includes(id)) handleDownloadBoard()
     }, [])
 
     const moveRectangle = useMutation(({storage, self, setMyPresence}, e:React.PointerEvent<HTMLDivElement>)=>{ 
         if(!isDragging) return;
         const id = self.presence.selectedShape;
         if(!id) return
-        if(id === 'chat'){
-            console.log('aca2')
-            setMyPresence({chat:{x:e.clientX-50, y:e.clientY-50, isOpened:true, isFullyOpened:false}});
+        if(['social', 'chat'].includes(id)){
+            setMyPresence({modal:{...presence.modal, x:e.clientX-50, y:e.clientY-50, isOpened:true, isFullyOpened:false}});
         }else{
             const rectangle = storage.get("shapes").get(id);
             if(!rectangle) return
@@ -137,13 +138,18 @@ function Canvas() {
         shape.update({fill: currentColor});
     }, [])
 
-
+    const otherHasShapeSelected = (id:string)=>{
+        const other = others.find((o)=> o.presence.selectedShape === id);
+        if(!other) return
+        return other.presence.myColor
+    };
+    if(!shapes) return<p>loading</p>
   return (
     <>
         {
-        presence.chat.isOpened && presence.chat.isFullyOpened ? <Chat className={` bg-white z-10 w-screen h-screen`}/> :
+            presence.modal.isOpened && presence.modal.isFullyOpened ? (presence.modal.type === 'chat' ?<Chat className='fullyOpenedModal'/>: <Social user={self.info as Liveblocks['UserMeta']} className='fullyOpenedModal'/>) :
         <>
-            <header className='z-2'>
+            <header className='z-2 header-canvas'>
             <ul className='flex gap-1'>
                 <li><button className='btn' onClick={()=> createRectangle()}>rectangle</button></li>
                 <li><button className='btn' onClick={()=> undo()} disabled={!canUndo()}>undo</button></li>
@@ -165,14 +171,22 @@ function Canvas() {
                     </div>
                 </li>
             </ul>
-            <ul>
-                <li className='flex flex-col-reverse'>{presence.name}(me) <div className='w-[50px] h-[50px] rounded-full overflow-hidden'><img className='object-cover w-full h-full' src={presence.avatar}/></div></li>
+            <ul className='flex gap-2 overflow-x-scroll max-w-[100px] pl-[100px]'>
+                <UserComponent user={{email:presence.name, image:presence.avatar}}/>
                 {
-                    others.map((o)=> <li className='flex flex-col-reverse'>{o.presence.name} <div className='w-[50px] h-[50px] rounded-full overflow-hidden'><img className='object-cover w-full h-full' src={o.presence.avatar}/></div></li>)
+                    others.map((o)=> o.id !== self?.id && <UserComponent key={o.id} user={{email:o.presence.name, image:o.presence.avatar}}/>)
                 }
             </ul>
-            <div>
+            <div className='flex items-center gap-3'>
+                <button onClick={()=> setPresence({modal:{x:presence.modal.x, y:presence.modal.y, isOpened:!presence.modal.isOpened, isFullyOpened:presence.modal.isFullyOpened, type:'social'}})} className='btn'>👥</button>
                 <a className='btn' download={download ? download.download : undefined} href={download ? download.href : undefined}>download board</a>
+                <nav>
+                    <ul>
+                        <li>
+                            <Link className='btn' href='/home/rooms'>back</Link>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </header>
         <main>
@@ -186,14 +200,16 @@ function Canvas() {
                     </div> 
                     ) :"") : "" 
                 }
-                <div>{
-                presence.chat.isOpened && <Chat itemID='chat' className={`w-[260px] h-[300px] bg-white border-[1px] border-solid border-gray-100 rounded shadow-[2px_2px_5px_rgba(0,0,0,.1)]`} id='chat' style={{position:'absolute',transform:presence.chat.x && presence.chat.y ? `translate(${presence.chat.x}px, ${presence.chat.y}px)` : undefined}} onPointerDown={(e)=> selectRectangle(e)}/>
-                }</div>
+                <div>
+                    {
+                        presence.modal.isOpened && !presence.modal.isFullyOpened ?  (presence.modal.type === 'chat' ? (<Chat className='openedModal' id='chat' style={{position:'absolute',transform:presence.modal.x && presence.modal.y ? `translate(${presence.modal.x}px, ${presence.modal.y}px)` : undefined}} onPointerDown={(e)=> selectRectangle(e)}/>) : <Social user={self.info as Liveblocks['UserMeta']} id='social' className='openedModal' style={{position:'absolute',transform:presence.modal.x && presence.modal.y ? `translate(${presence.modal.x}px, ${presence.modal.y}px)` : undefined}} onPointerDown={(e)=> selectRectangle(e)}/>) :null
+                    }
+                </div>
             </div>
             <div className="fixed bottom-4 right-10" >
                 <span
                     className="flex items-center justify-center w-14 h-14 bg-blue-500 text-white text-lg rounded-full shadow-lg cursor-pointer hover:bg-blue-600 transition duration-300"
-                    onClick={()=> setPresence({chat:{x:presence.chat.x, y:presence.chat.y, isOpened:!presence.chat.isOpened, isFullyOpened:presence.chat.isFullyOpened}})}
+                    onClick={()=> setPresence({modal:{x:presence.modal.x, y:presence.modal.y, isOpened:!presence.modal.isOpened, isFullyOpened:presence.modal.isFullyOpened, type:'chat'}})}
                 >
                     💬
                 </span>

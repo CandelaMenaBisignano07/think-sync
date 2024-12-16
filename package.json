@@ -10,10 +10,13 @@
   },
   "dependencies": {
     "@faker-js/faker": "^9.2.0",
-    "@liveblocks/client": "^2.13.0",
-    "@liveblocks/react": "^2.13.0",
+    "@liveblocks/client": "^2.14.0",
+    "@liveblocks/node": "^2.14.0",
+    "@liveblocks/react": "^2.14.0",
     "html2canvas": "^1.4.1",
+    "mongoose": "^8.8.4",
     "next": "15.0.3",
+    "next-auth": "^4.24.10",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",
     "uuid": "^11.0.3"
