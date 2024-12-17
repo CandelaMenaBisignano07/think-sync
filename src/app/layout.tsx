@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Provider from "./context/Provider";
-
+import { getServerSession } from "next-auth";
+import ClientSessionProvider from "./context/ClientSessionProvider";
+import { redirect } from "next/navigation";
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -27,9 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Provider>
+        <ClientSessionProvider>
           {children}
-        </Provider>
+        </ClientSessionProvider>
       </body>
     </html>
   );

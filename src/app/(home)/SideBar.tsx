@@ -11,12 +11,12 @@ async function SideBar({user}: {user:Session}) {
                 <Image className='rounded-full' src={user.user.image as string} width={50} height={50} alt='user image'/>
             </li>
             <li>
-              <Link href={'/home'}>
+              <Link href={'/'}>
                 Home
               </Link>
             </li>
             <li>
-              <Link href={'/home/rooms'}>
+              <Link href={'/rooms'}>
                 My Rooms
               </Link>
             </li>

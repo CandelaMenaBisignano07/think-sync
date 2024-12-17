@@ -7,7 +7,7 @@ async function RoomItemList({room}: {room: Room}) {
       <h4 className="text-lg font-semibold text-gray-700">{room.roomId}</h4>
       <p className="text-sm text-gray-600">enter room {room.roomId}</p>
     </div>
-    <Link href={`/home/rooms/${room.roomId}`} className='btn'>Enter</Link>
+    <Link href={`/rooms/${room.roomId}`} className='btn'>Enter</Link>
   </li>
   )
 }

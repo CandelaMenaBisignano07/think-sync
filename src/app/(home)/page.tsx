@@ -1,10 +1,8 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/lib/authOptionsConfig';
 import MyLayout from './MyLayout';
-import { redirect } from 'next/navigation';
-async function page() {
+async function HomePage() {
     const user =  await getServerSession(authOptions);
-    if(!user) return redirect('/')
   return (
     <MyLayout>
       {/* Main Content */}
@@ -32,4 +30,4 @@ async function page() {
   )
 }
 
-export default page
+export default HomePage

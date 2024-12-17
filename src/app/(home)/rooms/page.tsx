@@ -7,8 +7,6 @@ import MyLayout from '../MyLayout';
 import { redirect } from 'next/navigation';
 export default async function page() {
   const user = await getServerSession(authOptions);
-  console.log(user, 'el user')
-  if(!user) return redirect('/')
   const rooms = await getMyRooms(user.user._id);
   const invitationRooms = await getInvitationRooms(user.user._id)
   const formAddRoom = async()=>{

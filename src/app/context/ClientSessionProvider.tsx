@@ -2,7 +2,7 @@
 import React from 'react'
 import { SessionProvider } from 'next-auth/react'
 
-function Provider({children}: {children: React.ReactNode}) {
+function ClientSessionProvider({children}: {children: React.ReactNode}) {
   return (
     <>
       <SessionProvider>
@@ -12,4 +12,4 @@ function Provider({children}: {children: React.ReactNode}) {
   )
 }
 
-export default Provider
+export default ClientSessionProvider

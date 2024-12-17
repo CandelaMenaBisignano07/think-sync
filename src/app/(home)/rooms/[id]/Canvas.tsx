@@ -183,7 +183,7 @@ function Canvas() {
                 <nav>
                     <ul>
                         <li>
-                            <Link className='btn' href='/home/rooms'>back</Link>
+                            <Link className='btn' href='/rooms'>back</Link>
                         </li>
                     </ul>
                 </nav>
