@@ -1,8 +1,8 @@
-import { getServerSession } from 'next-auth';
+import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '../api/lib/authOptionsConfig';
 import MyLayout from './MyLayout';
 async function HomePage() {
-    const user =  await getServerSession(authOptions);
+    const user =  await getServerSession(authOptions) as Session
   return (
     <MyLayout>
       {/* Main Content */}

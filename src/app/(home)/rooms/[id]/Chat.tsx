@@ -20,7 +20,6 @@ export default function Chat({...props}:React.HTMLAttributes<HTMLDivElement>) {
         storage.get('chatMessages').set(id, new LiveObject(newMessage));
     }, [message]);
     const verifyIfMessageEntered= (e:React.KeyboardEvent<HTMLInputElement>)=>{
-        console.log(e.key)
         if(e.key != "Enter") return;
         else addMessage();
     };

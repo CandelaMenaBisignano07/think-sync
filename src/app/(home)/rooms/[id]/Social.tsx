@@ -1,52 +1,38 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Modal from './components/Modal'
-import { getAllUsers, getRoomById, inviteUsers} from '@/app/actions/rooms';
+import { inviteUsers} from '@/app/actions/rooms';
 import { Session } from 'next-auth';
 import UserComponent from './components/UserComponent';
 import { usePathname } from 'next/navigation';
-
+import { getUsers } from '@/app/actions/rooms';
+import { User } from 'next-auth';
 interface SocialProps extends React.HTMLAttributes<HTMLDivElement>{
     user:Liveblocks['UserMeta'],
+    setInvitationUsers:React.Dispatch<React.SetStateAction<(User & {
+        name?: string | null;
+        email?: string | null;
+        image?: string | null;
+    })[]>>
 }
-function Social({user, ...props}:SocialProps) {
+function Social({user, setInvitationUsers, ...props}:SocialProps) {
     const [search, setSearch] = useState('');
     const[users, setUsers] = useState<Session['user'][]>([]);
-    const[usersUpdate, setUsersUpdate] = useState<Session['user'][]>([]);
-    const roomId = usePathname().split('/')[3];
-    useEffect(()=>{
-        const getUsers = async()=>{ //usar abort 
-            try {
-                let users = await getAllUsers();
-                const room = await getRoomById(roomId);
-                console.log(room)
-                users = users.map((u)=> {
-                    if(room.userId == u._id) return {...u, permission:['room:write'], isAdmin:true} 
-                    if(room.invitedUsers.includes(u._id)) return {...u, permission: ["room:write"], isAdmin:false}
-                    return {...u, permission:null, isAdmin:false};
-                })
-                setUsers(users )
-                setUsersUpdate(users)
-                console.log(users, 'acaaaaa')
-            } catch (error) {
-                console.log(error)
-            }
-        }
-        getUsers()
-    }, [])
-    useEffect(()=>{
-        const newUsers = [...users.filter((u)=> u.email?.includes(search) || u.name?.includes(search))];
-        setUsersUpdate(newUsers)
+    const roomId = usePathname().split("/")[2]
+
+    const usersUpdate = useMemo(()=>{
+        return users.filter(({name, email})=> name?.includes(search) || email?.includes(search))
     }, [search, users])
+    useEffect(()=>{
+        getUsers(roomId).then(setUsers).catch((e)=> console.log(e))
+    }, [])
 
     const handleSelect = (e:React.ChangeEvent<HTMLSelectElement>)=>{
         const userValue = e.currentTarget.value;
         const userId = e.currentTarget.id;
-        console.log(userValue, 'aquiii')
-        setUsersUpdate((prev)=>{
+        setUsers((prev)=>{
             const i = prev.findIndex((u)=> u._id == userId)
             if(userValue === 'invited') prev[i] = {...prev[i], permission:['room:write']}
             else prev[i] = {...prev[i], permission:null}
-            console.log(prev, 'el nuevo')
             return [...prev]
         })
     }
@@ -54,7 +40,9 @@ function Social({user, ...props}:SocialProps) {
     const handleInvitation = async(users:Session["user"][])=>{
         if(users.length === 0) return;
         if(!user) return;
-        await inviteUsers(users, roomId, user);
+        const response = await inviteUsers(users, roomId, user);
+        const authorizedUserIds = Object.keys(response.usersAccesses)
+        getUsers(roomId).then((res)=> setInvitationUsers(res.filter((u)=> authorizedUserIds.includes(u._id)))).catch((e)=> console.log(e))
     }
   return (
     <Modal type='social' {...props}>
@@ -71,8 +59,21 @@ function Social({user, ...props}:SocialProps) {
                         {
                             u.isAdmin ? <p>(room admin)</p> :
                             <select id={u._id} onChange={(e)=>handleSelect(e)}>
-                                <option value={'no access'}>no access</option>
-                                <option value={'invited'}>invited</option>
+                                {
+                                    u.permission?.[0] === "room:write" ? 
+                                    <>
+                                        <option value={'invited'}>invited</option>
+                                        <option value={'no access'}>no access</option>
+                                    </>
+                                    :
+                                    (
+                                        <>
+                                            <option value={'no access'}>no access</option>
+                                            <option value={'invited'}>invited</option>
+                                        </>
+                                    )
+
+                                }
                             </select>
                         }
                     </div>

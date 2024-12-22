@@ -2,11 +2,13 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 import { LiveMap, LiveObject} from "@liveblocks/client";
 export type Shape=LiveObject<{
-  fill: string;
+  fill: { name: string, hexCode: string, fontColor: "black" | "white" };
   hasActivatedText: boolean;
   text:null|string;
   x:number;
   y:number;
+  type: 'circle' | 'rectangle';
+  ownerAvatar:string;
 }> 
 export type DownloadUrl = {
   href:string,

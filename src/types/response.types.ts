@@ -1,6 +1,7 @@
+import { RoomData } from "@liveblocks/node";
 import { Room } from "./rooms.types";
 import { Session } from "next-auth";
-export type Payloads = Room[] | Room | Session['user'][]
+export type Payloads = Room[] | Room | Session['user'][] | Session["user"] | RoomData
 
 
 export type ErrorType={

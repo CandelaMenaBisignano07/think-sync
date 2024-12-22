@@ -23,7 +23,7 @@ export async function PUT(req:NextRequest,{params}: {params:Promise<{ id: string
     const {usersPermissions, currentUser} : {usersPermissions:Session['user'][], currentUser:Liveblocks['UserMeta']} = await req.json();
     try {
         await connect();
-        console.log(usersPermissions, currentUser)
+        console.log(usersPermissions, "los permisos")
         if(!currentUser) return NextResponse.json({status:'error', error:'user not found'}, {status:404})
         if(!usersPermissions) return NextResponse.json({status:'error', error:EErrors[400]}, {status:400});
         const result = Object.fromEntries(usersPermissions.map(item => [item._id, item.permission])) as Record<string, PermissionValues>

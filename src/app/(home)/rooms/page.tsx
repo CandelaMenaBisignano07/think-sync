@@ -1,17 +1,16 @@
-import { getServerSession } from 'next-auth';
+import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/app/api/lib/authOptionsConfig';
 import Form from 'next/form'
 import { addRoom, getInvitationRooms, getMyRooms } from '@/app/actions/rooms';
 import RoomList from './RoomList';
 import MyLayout from '../MyLayout';
-import { redirect } from 'next/navigation';
 export default async function page() {
-  const user = await getServerSession(authOptions);
+  const user = await getServerSession(authOptions) as Session
   const rooms = await getMyRooms(user.user._id);
   const invitationRooms = await getInvitationRooms(user.user._id)
   const formAddRoom = async()=>{
     "use server"
-    await addRoom(user?.user._id as string)
+    await addRoom(user.user._id)
   }
   return(
     <MyLayout>
