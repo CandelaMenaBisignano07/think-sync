@@ -4,7 +4,7 @@ import { inviteUsers} from '@/app/actions/rooms';
 import { Session } from 'next-auth';
 import UserComponent from './components/UserComponent';
 import { usePathname } from 'next/navigation';
-import { getUsers } from '@/app/actions/rooms';
+import { getUsersWithPermissions } from '@/app/actions/rooms';
 import { User } from 'next-auth';
 interface SocialProps extends React.HTMLAttributes<HTMLDivElement>{
     user:Liveblocks['UserMeta'],
@@ -23,7 +23,7 @@ function Social({user, setInvitationUsers, ...props}:SocialProps) {
         return users.filter(({name, email})=> name?.includes(search) || email?.includes(search))
     }, [search, users])
     useEffect(()=>{
-        getUsers(roomId).then(setUsers).catch((e)=> console.log(e))
+        getUsersWithPermissions(roomId).then(setUsers).catch((e)=> console.log(e))
     }, [])
 
     const handleSelect = (e:React.ChangeEvent<HTMLSelectElement>)=>{
@@ -42,19 +42,19 @@ function Social({user, setInvitationUsers, ...props}:SocialProps) {
         if(!user) return;
         const response = await inviteUsers(users, roomId, user);
         const authorizedUserIds = Object.keys(response.usersAccesses)
-        getUsers(roomId).then((res)=> setInvitationUsers(res.filter((u)=> authorizedUserIds.includes(u._id)))).catch((e)=> console.log(e))
+        getUsersWithPermissions(roomId).then((res)=> setInvitationUsers(res.filter((u)=> authorizedUserIds.includes(u._id)))).catch((e)=> console.log(e))
     }
   return (
     <Modal type='social' {...props}>
         <section className='pt-3'>
-            <input className='w-full pl-2 border-[1px] border-solid border-black' value={search} onChange={(e)=> setSearch(e.currentTarget.value)} />
+            <input placeholder='search...' className='w-full pl-2 border-[1px] border-solid border-black' value={search} onChange={(e)=> setSearch(e.currentTarget.value)} />
         </section>
         <section>
-            <ul className='max-h-[50%] justify-center items-center flex flex-col overflow-scroll'>
+            <ul className='max-h-[50%] justify-center items-start flex flex-col overflow-scroll'>
                 {
                     usersUpdate.length > 0 ? usersUpdate.map((u)=>(
                     u._id !== user.id &&
-                    <div key={u.id} className='flex pl-[100px] items-center gap-2'>
+                    <div key={u.id} className='flex items-center gap-2'>
                         <UserComponent className='flex gap-2 items-center' user={{email:u.email as string, image:u.image as string}} key={u._id}/>
                         {
                             u.isAdmin ? <p>(room admin)</p> :

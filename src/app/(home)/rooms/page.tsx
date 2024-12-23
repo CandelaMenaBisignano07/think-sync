@@ -1,13 +1,13 @@
 import { getServerSession, Session } from 'next-auth';
 import { authOptions } from '@/app/api/lib/authOptionsConfig';
 import Form from 'next/form'
-import { addRoom, getInvitationRooms, getMyRooms } from '@/app/actions/rooms';
+import { addRoom, getUserInvitationRooms, getMyRooms } from '@/app/actions/rooms';
 import RoomList from './RoomList';
 import MyLayout from '../MyLayout';
 export default async function page() {
   const user = await getServerSession(authOptions) as Session
   const rooms = await getMyRooms(user.user._id);
-  const invitationRooms = await getInvitationRooms(user.user._id)
+  const invitationRooms = await getUserInvitationRooms(user.user._id)
   const formAddRoom = async()=>{
     "use server"
     await addRoom(user.user._id)
@@ -22,11 +22,11 @@ export default async function page() {
           </Form>
         </section>
         <section className='flex flex-col mb-10'>
-          <RoomList rooms={rooms}/>
+          <RoomList type='owner' rooms={rooms}/>
         </section>
         <section className='flex flex-col '>
           <h2 className='text-2xl mb-10'>invitation rooms</h2>
-          <RoomList rooms={invitationRooms}/>
+          <RoomList type='invited' rooms={invitationRooms}/>
         </section>
       </div>
     </MyLayout>

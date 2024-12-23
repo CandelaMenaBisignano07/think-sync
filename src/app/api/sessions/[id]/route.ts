@@ -6,7 +6,6 @@ export async function GET(req:NextRequest, {params}:{params:Promise<{ id: string
     const id = (await params).id;
     try {
         await connect();
-        console.log(id, "el id")
         const users = await userModel.findById(id);
         return NextResponse.json({status:'success', payload:users});
     } catch (error) {

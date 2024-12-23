@@ -1,9 +1,9 @@
 "use client"
-import { Session } from "next-auth"
-import Image from "next/image"
+import { Session } from "next-auth";
+import Image from "next/image";
 interface UserComponentProps extends React.LiHTMLAttributes<HTMLLIElement>{
-    user: {email:Session['user']['email'],image:Session['user']['image']}
-}
+    user: {email:Session['user']['email'],image:Session['user']['image']};
+};
 function UserComponent({user, ...props}: UserComponentProps) {
   return (
     <li {...props}>
@@ -13,6 +13,6 @@ function UserComponent({user, ...props}: UserComponentProps) {
       <span>{user.email}</span>
     </li>
   )
-}
+};
 
-export default UserComponent
+export default UserComponent;

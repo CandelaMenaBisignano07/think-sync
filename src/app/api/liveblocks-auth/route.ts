@@ -5,8 +5,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../lib/authOptionsConfig";
 export async function POST() {
     try {
-      const user = await getServerSession(authOptions)
-      if(!user) return NextResponse.json({status:'error',error:'user not found'}, {status:404})
+      const user = await getServerSession(authOptions);
+      if(!user) return NextResponse.json({status:'error',error:EErrors[404]}, {status:404})
       const newUser = {
         id:user.user._id as string,
         name: user.user.name as string,

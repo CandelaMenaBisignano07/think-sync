@@ -15,6 +15,6 @@ function Modal({type,children, ...props}: ModalType) {
             {children}
         </div>
   )
-}
+};
 
-export default Modal
+export default Modal;

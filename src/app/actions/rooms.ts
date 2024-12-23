@@ -8,6 +8,8 @@ import { v4 } from "uuid";
 import { revalidatePath } from "next/cache";
 import { Session } from "next-auth";
 import { RoomData } from "@liveblocks/node";
+
+
 export const addRoom = async(userId:string)=>{
     const roomId = v4()
     try {
@@ -25,6 +27,23 @@ export const addRoom = async(userId:string)=>{
         isError(error)
     }
 };
+
+export const deleteRoom = async(roomId:string)=>{
+    try {
+        const deleteRoomFetch = await fetch(`http://localhost:3000/api/rooms/${roomId}`,{
+            method:"DELETE",
+            headers:{
+                "Content-Type": "application/json"
+            }
+        });
+        const toJson:ResponseType =  await deleteRoomFetch.json();
+        if(isFailed(toJson)) throw new Error(toJson.error);
+        revalidatePath('/home/rooms');
+    } catch (error) {
+        isError(error);
+    }
+}
+
 export const getMyRooms = async(userId:string)=>{
     try {
         const roomsFetch = await fetch(`http://localhost:3000/api/rooms?userId=${userId}`, {
@@ -69,12 +88,11 @@ export const getAllUsers = async()=>{
     }
 };
 
-export const inviteUsers = async(users:Session['user'][], roomId:string, currentUser:Liveblocks['UserMeta'])=>{
-    console.log(users, currentUser)
+export const inviteUsers = async(usersPermissions:Session['user'][], roomId:string, currentUser:Liveblocks['UserMeta'])=>{
     try {
         const roomUpdateFetch = await fetch(`http://localhost:3000/api/rooms/invitations/${roomId}`, {
             method:'PUT',
-            body:JSON.stringify({usersPermissions:users, currentUser})
+            body:JSON.stringify({usersPermissions, currentUser})
         })
         const toJson:ResponseType = await roomUpdateFetch.json();
         if(isFailed(toJson)) throw new Error(toJson.error);
@@ -84,7 +102,7 @@ export const inviteUsers = async(users:Session['user'][], roomId:string, current
     }
 };
 
-export const getInvitationRooms = async(id:string)=>{
+export const getUserInvitationRooms = async(id:string)=>{
     try {
         const getUserInvitationsFetch = await fetch(`http://localhost:3000/api/rooms/invitations/${id}`);
         const toJson:ResponseType = await getUserInvitationsFetch.json();
@@ -105,7 +123,7 @@ export const getUserById=async(id:string)=>{
     }
 }
 
-export const getUsers = async(roomId:string)=>{ //usar abort 
+export const getUsersWithPermissions = async(roomId:string)=>{
     try {
         let users = await getAllUsers();
         const room = await getRoomById(roomId);

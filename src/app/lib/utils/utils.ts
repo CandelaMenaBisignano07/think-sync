@@ -1,7 +1,5 @@
 import { ErrorType, ResponseType} from "@/types/response.types";
 
-
-
 export function isFailed(response:ResponseType):response is ErrorType{
     return response.status === "error" 
 };

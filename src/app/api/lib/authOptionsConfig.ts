@@ -4,7 +4,7 @@ import { configs } from '@/app/lib/config';
 import { userModel } from '../model/user.model';
 import GithubProvider from 'next-auth/providers/github'
 import { AuthOptions } from 'next-auth';
-
+import { JWT } from 'next-auth/jwt';
 export const authOptions ={
     secret: configs.nextAuthSecret,
     providers:[
@@ -30,7 +30,7 @@ export const authOptions ={
                     email:user.email,
                     name:user.name || null,
                     image:user.image || null,
-                    provider:account?.provider as string,
+                    provider:account?.provider as JWT["provider"],
                 }
                 const createdUser= await userModel.create(newUser);
                 user._id = createdUser._id
@@ -39,7 +39,7 @@ export const authOptions ={
         },
         async jwt({user,token, account}){
             if(account){
-                token.provider = account.provider
+                token.provider = account.provider as JWT["provider"]
                 const userFound = await userModel.findOne({email:user.email, provider:account.provider});
                 if(!userFound) return token
                 token._id = userFound._id
@@ -50,7 +50,6 @@ export const authOptions ={
             if(token){
                 session.user._id = token._id 
                 session.user.provider = token.provider
-                console.log(session, '2')
             }
             return session
         }

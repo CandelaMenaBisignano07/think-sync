@@ -7,23 +7,22 @@ import { LiveObject, toPlainLson } from "@liveblocks/client";
 import { LiveMap } from "@liveblocks/client";
 import { PlainLsonObject, RoomAccesses } from "@liveblocks/node";
 export async function POST(req:NextRequest){
-    const body = await req.json();
+    const {roomId, userId}:{roomId:string, userId:string} = await req.json();
     try {
         await connect();
-        // const user = await getServerSession(authOptions);
-        if(!body.roomId || !body.userId) return NextResponse.json({status:'error', error:EErrors[400]}, {status:400})
-        const userAccesses = {[body.userId as string]: ["room:write"]} as RoomAccesses
-        const room = await liveblocks.createRoom(body.roomId, {
+        if(!roomId || !userId) return NextResponse.json({status:'error', error:EErrors[400]}, {status:400})
+        const userAccesses = {[userId as string]: ["room:write"]} as RoomAccesses
+        const room = await liveblocks.createRoom(roomId, {
             defaultAccesses:[],
             usersAccesses:userAccesses,
             metadata:{
-                admin:body.userId
+                admin:userId
             }
         });
 
         const newRoom={
-            roomId: body.roomId,
-            userId:body.userId,
+            roomId: roomId,
+            userId:userId,
             created_at: room.createdAt,
             invitedUsers:[]
         };
@@ -33,7 +32,7 @@ export async function POST(req:NextRequest){
             shapes: new LiveMap(),
             chatMessages: new LiveMap()
         }
-        await liveblocks.initializeStorageDocument(body.roomId, toPlainLson(new LiveObject(initialStorage)) as PlainLsonObject)
+        await liveblocks.initializeStorageDocument(roomId, toPlainLson(new LiveObject(initialStorage)) as PlainLsonObject)
         return NextResponse.json({status:'success', payload:createdRoom}, {status:201});
     } catch (error) {
         if(error instanceof Error) return NextResponse.json({status:'error', error:error.message}, {status:500});

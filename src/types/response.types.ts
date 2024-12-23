@@ -11,7 +11,8 @@ export type ErrorType={
 
 export type SuccessType={
     status:'success',
-    payload: Payloads
+    payload?: Payloads,
+    message?:string
 };
 
 export type ResponseType=SuccessType | ErrorType
